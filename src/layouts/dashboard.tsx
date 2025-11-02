@@ -1,3 +1,4 @@
+// DashboardLayout.tsx — sin cambios funcionales, ajuste leve de fondos
 import type React from "react";
 import { useState } from "react";
 import BaseLayout from "./base";
@@ -11,16 +12,10 @@ const DashboardLayout: React.FC = () => {
   return (
     <BaseLayout showThemeToggle={false}>
       <div className="flex h-screen bg-background">
-        {/* Sidebar */}
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header */}
           <Header onMenuClick={() => setSidebarOpen(true)} />
-
-          {/* Page Content */}
-          <main className="flex-1 overflow-y-auto bg-muted/30 p-6">
+          <main className="flex-1 overflow-y-auto p-6 bg-muted/30">
             <div className="max-w-7xl mx-auto">
               <Outlet />
             </div>

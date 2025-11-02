@@ -1,8 +1,8 @@
 import { Input } from "@/components/ui/input";
-import { userPatientStore } from "../data/patient.store";
+import { userDeviceStore } from "../data/device.store";
 
-export default function PatientFilter() {
-  const { search, applySearch } = userPatientStore();
+export default function DeviceFilter() {
+  const { search, applySearch } = userDeviceStore();
   return (
     <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
       <Input

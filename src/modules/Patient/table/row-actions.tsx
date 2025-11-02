@@ -5,9 +5,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pen, RefreshCwIcon, XCircle } from "lucide-react";
+import {
+  Footprints,
+  GalleryThumbnails,
+  MoreHorizontal,
+  Pen,
+  RefreshCwIcon,
+  XCircle,
+} from "lucide-react";
 import type { Patient } from "../patient.interface";
 import { userPatientStore } from "../data/patient.store";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   item: Patient;
@@ -16,6 +24,13 @@ interface Props {
 
 export const PatientRowActions = ({ item, onEditUser }: Props) => {
   const { changeStatus, remove } = userPatientStore();
+  const navigate = useNavigate();
+  const viewPlantilla = () => {
+    navigate("/session/" + item.id);
+  };
+  const viewGallery = () => {
+    navigate("/gallery/" + item.id);
+  };
 
   const handleUpdate = () => {
     onEditUser(item); // Abre el modal de edición
@@ -47,6 +62,12 @@ export const PatientRowActions = ({ item, onEditUser }: Props) => {
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleUpdate}>
             <Pen /> Editar
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={viewPlantilla}>
+            <Footprints /> Registro de plantilla
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={viewGallery}>
+            <GalleryThumbnails /> Galería
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

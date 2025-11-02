@@ -6,28 +6,32 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Pen, RefreshCwIcon, XCircle } from "lucide-react";
-import type { Patient } from "../patient.interface";
-import { userPatientStore } from "../data/patient.store";
+import type { Device } from "../device.interface";
+import { userDeviceStore } from "../data/device.store";
 
 interface Props {
-  item: Patient;
-  onEditUser: (user: Patient) => void;
+  item: Device;
+  onEditUser: (user: Device) => void;
 }
 
-export const PatientRowActions = ({ item, onEditUser }: Props) => {
-  const { changeStatus, remove } = userPatientStore();
+export const DeviceRowActions = ({ item, onEditUser }: Props) => {
+  const { changeStatus, remove, unlink } = userDeviceStore();
 
   const handleUpdate = () => {
     onEditUser(item); // Abre el modal de edición
   };
 
   const handleDelete = () => {
-    remove(item.user.id);
+    remove(item.id);
   };
 
   const handleStatus = () => {
-    const status = item.user.status;
-    changeStatus(item.user.id, status === "ACTIVE" ? "INACTIVE" : "ACTIVE");
+    const status = item.status;
+    changeStatus(item.id, status === "ACTIVE" ? "INACTIVE" : "ACTIVE");
+  };
+
+  const handleUnlink = () => {
+    unlink(item.id);
   };
 
   return (
@@ -47,6 +51,9 @@ export const PatientRowActions = ({ item, onEditUser }: Props) => {
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleUpdate}>
             <Pen /> Editar
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleUnlink}>
+            <XCircle /> Desvincular
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

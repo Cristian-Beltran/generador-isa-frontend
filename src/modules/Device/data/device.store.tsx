@@ -1,12 +1,12 @@
 import { toast } from "sonner";
 import { create } from "zustand";
-import type { CreatePatient, Patient } from "../patient.interface";
+import type { CreateDevice, Device } from "../device.interface";
 import type { Status } from "@/types/status.interface";
-import { patientService } from "./patient.service";
+import { deviceService } from "./device.service";
 
 interface UserClinicStore {
-  data: Patient[];
-  filteredData: Patient[];
+  data: Device[];
+  filteredData: Device[];
   search: string;
   isLoading: boolean;
   fetchFull: () => Promise<void>;
@@ -14,13 +14,14 @@ interface UserClinicStore {
   total: number;
   applySearch: (term: string) => void;
 
-  create: (payload: CreatePatient) => Promise<void>;
-  update: (id: string, payload: Partial<CreatePatient>) => Promise<void>;
+  create: (payload: CreateDevice) => Promise<void>;
+  update: (id: string, payload: Partial<CreateDevice>) => Promise<void>;
   remove: (id: string) => Promise<void>;
   changeStatus: (id: string, status: Status) => Promise<void>;
+  unlink: (deviceId: string) => Promise<void>;
 }
 
-export const userPatientStore = create<UserClinicStore>((set, get) => ({
+export const userDeviceStore = create<UserClinicStore>((set, get) => ({
   data: [],
   filteredData: [],
   total: 0,
@@ -32,7 +33,7 @@ export const userPatientStore = create<UserClinicStore>((set, get) => ({
   async fetchFull() {
     set({ isLoading: true });
     try {
-      const data = await patientService.findAll();
+      const data = await deviceService.findAll();
       set({
         data,
         filteredData: data,
@@ -49,21 +50,20 @@ export const userPatientStore = create<UserClinicStore>((set, get) => ({
   applySearch(term) {
     set({ search: term });
     const { data, search } = get();
-    console.log("filtrando");
     const filtered = data.filter((item) => {
-      const { fullname, email } = item.user;
+      const { serialNumber, model } = item;
       const normalized = search.toLowerCase();
 
       return (
-        fullname?.toLowerCase().includes(normalized) ||
-        email?.toLowerCase().includes(normalized)
+        serialNumber?.toLowerCase().includes(normalized) ||
+        model?.toLowerCase().includes(normalized)
       );
     });
     set({ filteredData: filtered });
   },
 
   async create(payload) {
-    const created = await patientService.create(payload);
+    const created = await deviceService.create(payload);
     const { data } = get();
     set({
       data: [created, ...data],
@@ -78,15 +78,10 @@ export const userPatientStore = create<UserClinicStore>((set, get) => ({
   },
 
   async update(id, payload) {
-    const updated = await patientService.update(id, payload);
+    const updated = await deviceService.update(id, payload);
     console.log(updated);
     const { data } = get();
-    data.map((item) => {
-      console.log(item.user.id == id);
-    });
-    const updatedData = data.map((item) =>
-      item.user.id == id ? updated : item,
-    );
+    const updatedData = data.map((item) => (item.id == id ? updated : item));
     console.log(updatedData);
     set({ data: updatedData });
     get().reload();
@@ -95,9 +90,9 @@ export const userPatientStore = create<UserClinicStore>((set, get) => ({
 
   async remove(id) {
     try {
-      await patientService.remove(id);
+      await deviceService.remove(id);
       const { data } = get();
-      const updatedData = data.filter((item) => item.user.id !== id);
+      const updatedData = data.filter((item) => item.id !== id);
       set({
         data: updatedData,
         total: updatedData.length,
@@ -112,17 +107,34 @@ export const userPatientStore = create<UserClinicStore>((set, get) => ({
 
   async changeStatus(id, status) {
     try {
-      const updated = await patientService.changeStatus(id, status);
+      const updated = await deviceService.changeStatus(id, status);
       toast.success("Estado modificiado");
       const { data } = get();
-      const updatedData = data.map((item) =>
-        item.user.id === id ? updated : item,
-      );
+      const updatedData = data.map((item) => (item.id === id ? updated : item));
       set({ data: updatedData });
       get().reload();
     } catch (error) {
       console.error(error);
       toast.error("Ha ocurrido un error");
+    }
+  },
+  async unlink(deviceId) {
+    try {
+      const updated = await deviceService.unlink(deviceId);
+      const { data } = get();
+      const safeUpdated = {
+        ...updated,
+        patient: updated?.patient ?? null,
+      } as Device;
+      const updatedData = data.map((d) =>
+        d.id === deviceId ? safeUpdated : d,
+      );
+      set({ data: updatedData });
+      get().reload();
+      toast.success("Paciente desvinculado del dispositivo");
+    } catch (error) {
+      console.error(error);
+      toast.error("No se pudo desvincular el paciente");
     }
   },
 }));

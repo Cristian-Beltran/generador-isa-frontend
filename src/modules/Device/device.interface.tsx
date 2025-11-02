@@ -7,3 +7,9 @@ export interface Device {
   patient: Patient;
   status: string;
 }
+
+export interface CreateDevice {
+  serialNumber: string;
+  model: string;
+  patientId: string;
+}

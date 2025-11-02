@@ -8,7 +8,6 @@ import DoctorsPage from "./modules/Doctors/doctors";
 import { AuthProvider } from "./auth/ProtectedRoute";
 import DevicesPage from "./modules/Device/devices";
 import PatientPage from "./modules/Patient/patient";
-import FamilyPage from "./modules/Family/family";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -25,7 +24,6 @@ export const router = createBrowserRouter([
       { path: "doctor", element: <DoctorsPage /> },
       { path: "devices", element: <DevicesPage /> },
       { path: "patients", element: <PatientPage /> },
-      { path: "family", element: <FamilyPage /> },
 
       // routes
     ],

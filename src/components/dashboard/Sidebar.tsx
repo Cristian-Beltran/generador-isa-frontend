@@ -1,18 +1,17 @@
+// Sidebar.tsx — NeuroStim
 import type React from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../contexts/ThemeContext";
 import {
-  Activity,
   LogOut,
   X,
   Moon,
   Sun,
   Home,
-  Users,
   UsersRound,
   User,
-  Microchip,
-  Wifi,
+  Cpu,
+  WavesIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "../../lib/utils";
@@ -24,12 +23,11 @@ interface SidebarProps {
 }
 
 const navigationItems = [
-  { name: "Dashboard", href: "/", icon: Home },
+  { name: "Panel", href: "/", icon: Home },
   { name: "Doctores", href: "/doctor", icon: UsersRound },
   { name: "Pacientes", href: "/patients", icon: User },
-  { name: "Familiares", href: "/family", icon: Users },
-  { name: "Datos en tiempo Real", href: "/monitoring", icon: Wifi },
-  { name: "Dispositivos", href: "/devices", icon: Microchip },
+  { name: "Sesiones", href: "/monitoring", icon: WavesIcon },
+  { name: "Dispositivos", href: "/devices", icon: Cpu },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
@@ -46,74 +44,85 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
-      {/* Sidebar */}
-      <div
+      <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
+          "fixed inset-y-0 left-0 z-50 w-68 bg-gradient-to-b from-background to-muted/40 border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-sidebar-border">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-sidebar-primary/10 rounded-lg">
-                <Activity className="h-6 w-6 text-sidebar-primary" />
+        <div className="flex h-full flex-col">
+          {/* Brand header */}
+          <div className="p-5 border-b">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 grid place-items-center rounded-xl border bg-card shadow-sm">
+                  <WavesIcon className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold leading-tight">
+                    NeuroStim
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Control Center
+                  </p>
+                </div>
               </div>
-              <span className="text-lg font-bold text-sidebar-foreground">
-                MedDistrib
-              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="lg:hidden"
+                aria-label="Cerrar menú"
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="lg:hidden text-sidebar-foreground hover:bg-sidebar-accent"
-            >
-              <X className="h-5 w-5" />
-            </Button>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
+          {/* Nav */}
+          <nav className="flex-1 px-3 py-4 space-y-1">
             {navigationItems.map((item) => {
               const isActive = location.pathname === item.href;
               const Icon = item.icon;
-
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium",
                     isActive
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                      ? "bg-primary/10 text-primary border border-primary/20"
+                      : "hover:bg-accent hover:text-accent-foreground",
                   )}
                 >
-                  <Icon className="h-5 w-5" />
-                  {item.name}
+                  {/* Active rail */}
+                  <span
+                    className={cn(
+                      "absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r",
+                      isActive ? "bg-primary" : "bg-transparent",
+                    )}
+                  />
+                  <Icon className={cn("h-5 w-5", isActive && "text-primary")} />
+                  <span>{item.name}</span>
                 </Link>
               );
             })}
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-sidebar-border space-y-4">
-            {/* Theme Toggle */}
+          <div className="p-4 border-t space-y-3">
             <Button
               variant="ghost"
               onClick={toggleTheme}
-              className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent"
+              className="w-full justify-start gap-3"
             >
               {theme === "light" ? (
                 <Moon className="h-5 w-5" />
@@ -123,32 +132,26 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               {theme === "light" ? "Modo Oscuro" : "Modo Claro"}
             </Button>
 
-            {/* User Info */}
             {user && (
-              <div className="px-3 py-2 bg-sidebar-accent/50 rounded-lg">
-                <p className="text-sm font-medium text-sidebar-foreground">
-                  {user.fullname}
-                </p>
-                <p className="text-xs text-sidebar-foreground/60">
-                  {
-                    //user.email
-                  }
+              <div className="px-3 py-2 rounded-xl border bg-card/60">
+                <p className="text-sm font-medium">{user.fullname}</p>
+                <p className="text-xs text-muted-foreground">
+                  Operador registrado
                 </p>
               </div>
             )}
 
-            {/* Logout */}
             <Button
               variant="ghost"
               onClick={handleLogout}
               className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10"
             >
               <LogOut className="h-5 w-5" />
-              Cerrar Sesión
+              Cerrar sesión
             </Button>
           </div>
         </div>
-      </div>
+      </aside>
     </>
   );
 };

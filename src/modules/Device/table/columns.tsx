@@ -1,39 +1,23 @@
 import { Badge } from "@/components/ui/badge";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Patient } from "../patient.interface";
+import type { Device } from "../device.interface";
 
-export const columns: ColumnDef<Patient>[] = [
+export const columns: ColumnDef<Device>[] = [
   {
-    accessorKey: "user.fullname",
-    header: () => "Nombre",
+    accessorKey: "serialNumber",
+    header: () => "Numero de serie",
   },
   {
-    accessorKey: "user.email",
-    header: () => "Correo",
+    accessorKey: "model",
+    header: () => "Modelo",
   },
   {
-    accessorKey: "user.address",
-    header: () => "Dirreción",
+    accessorKey: "patient.user.fullname",
+    header: () => "Paciente vinculado",
   },
+
   {
-    accessorKey: "device.serialNumber",
-    header: () => "Dispositivo vinculado",
-  },
-  {
-    accessorKey: "user.createdAt",
-    id: "createdAt",
-    header: () => "Registrado",
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("createdAt"));
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    },
-  },
-  {
-    accessorKey: "user.status",
+    accessorKey: "status",
     id: "status",
     header: () => "Estado",
     cell: ({ row }) => {

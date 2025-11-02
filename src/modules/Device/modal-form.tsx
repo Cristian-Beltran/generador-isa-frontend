@@ -15,69 +15,100 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import type { Patient } from "./patient.interface";
-import { userPatientStore } from "./data/patient.store";
+
+import type { Device } from "./device.interface";
+import type { Patient } from "@/modules/Patient/patient.interface";
+import { userDeviceStore } from "./data/device.store";
+import { patientService } from "../Patient/data/patient.service";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  user: Patient | null;
+  user: Device | null;
 }
 
-export default function PatientFormModal({ isOpen, onClose, user }: Props) {
-  const patientSchema = z.object({
-    fullname: z.string().min(2, "Nombre requerido"),
-    email: z.string().email("Correo Requerido"),
-    password: user
-      ? z.string().optional() // en edición no valida contraseña
-      : z.string().min(6, "Contraseña requerida"), // en creación sí
-    address: z.string().optional(),
-  });
-  type PatientFormValues = z.infer<typeof patientSchema>; //
+const deviceSchema = z.object({
+  serialNumber: z.string().min(2, "Serial requerido"),
+  model: z.string().min(1, "Modelo requerido"),
+  patientId: z.string().uuid("Paciente inválido"),
+});
+type DeviceFormValues = z.infer<typeof deviceSchema>;
 
-  const { create, update } = userPatientStore();
-  const form = useForm<PatientFormValues>({
-    resolver: zodResolver(patientSchema),
+export default function DeviceFormModal({ isOpen, onClose, user }: Props) {
+  const { create, update } = userDeviceStore();
+
+  const form = useForm<DeviceFormValues>({
+    resolver: zodResolver(deviceSchema),
     defaultValues: {
-      fullname: "",
-      email: "",
-      address: "",
+      serialNumber: "",
+      model: "",
+      patientId: "",
     },
   });
 
+  // cargar pacientes
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [loadingPatients, setLoadingPatients] = useState(false);
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoadingPatients(true);
+      try {
+        const data = await patientService.findAll();
+        if (mounted) setPatients(data ?? []);
+      } finally {
+        if (mounted) setLoadingPatients(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [isOpen]);
+
+  // hidratar edición / creación
   useEffect(() => {
     if (user) {
-      const { user: base } = user;
       form.reset({
-        fullname: base.fullname,
-        email: base.email,
-        address: base.address || "",
+        serialNumber: user.serialNumber ?? "",
+        model: user.model ?? "",
+        patientId: user.patient?.id ?? "",
       });
     } else {
       form.reset({
-        fullname: "",
-        email: "",
-        address: "",
+        serialNumber: "",
+        model: "",
+        patientId: "",
       });
     }
   }, [user, form, isOpen]);
 
-  const onSubmit = async (data: PatientFormValues) => {
+  const onSubmit = async (data: DeviceFormValues) => {
     try {
       if (user) {
-        await update(user.user.id, {
-          fullname: data.fullname,
-          address: data.address,
-          email: data.email,
+        await update(user.id, {
+          serialNumber: data.serialNumber,
+          model: data.model,
+          patientId: data.patientId,
         });
       } else {
-        await create(data);
+        await create({
+          serialNumber: data.serialNumber,
+          model: data.model,
+          patientId: data.patientId,
+        });
       }
       onClose();
     } catch (error) {
@@ -86,31 +117,36 @@ export default function PatientFormModal({ isOpen, onClose, user }: Props) {
         return;
       }
       if (error.response?.status === 400) {
-        toast.error("Correo repetido");
-        form.setError("email", { type: "server" }, { shouldFocus: true });
+        toast.error("Datos inválidos o duplicados");
         return;
       }
-      toast.error(error.response?.data.message);
+      toast.error(error.response?.data?.message ?? "Error inesperado");
     }
   };
+
+  const patientOptions = patients
+    .filter((p) => !p.device || (user?.id && p.device.id === user.id)) // sin device o el mismo device en edición
+    .map((p) => ({ value: p.id, label: p.user?.fullname ?? "(Sin nombre)" }));
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>{user ? "Editar usuario" : "Crear Usuario"}</DialogTitle>
+          <DialogTitle>
+            {user ? "Editar Dispositivo" : "Crear Dispositivo"}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
-              name="fullname"
+              name="serialNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nombre completo</FormLabel>
+                  <FormLabel>Serial</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input placeholder="SN-0001" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -119,40 +155,48 @@ export default function PatientFormModal({ isOpen, onClose, user }: Props) {
 
             <FormField
               control={form.control}
-              name="email"
+              name="model"
               render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>Correo electronico</FormLabel>
+                <FormItem>
+                  <FormLabel>Modelo</FormLabel>
                   <FormControl>
-                    <Input type="email" {...field} />
+                    <Input placeholder="Modelo del dispositivo" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {!user && (
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Contraseña</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+
+            {/* Select simple de shadcn para paciente */}
             <FormField
               control={form.control}
-              name="address"
+              name="patientId"
               render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>Dirreción</FormLabel>
+                <FormItem>
+                  <FormLabel>Paciente vinculado</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={loadingPatients}
+                    >
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            loadingPatients
+                              ? "Cargando..."
+                              : "Selecciona paciente"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {patientOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
