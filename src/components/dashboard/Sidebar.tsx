@@ -29,7 +29,7 @@ const doctorMenu = [
 ];
 
 const patientMenu = [
-  { label: "Mis datos", href: "/me", icon: User },
+  { name: "Mis datos", href: "/me", icon: User },
   { name: "Sesion", href: "/monitoring", icon: WavesIcon },
 ];
 
