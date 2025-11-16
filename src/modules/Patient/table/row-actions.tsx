@@ -6,8 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Footprints,
-  GalleryThumbnails,
+  DatabaseIcon,
   MoreHorizontal,
   Pen,
   RefreshCwIcon,
@@ -26,10 +25,7 @@ export const PatientRowActions = ({ item, onEditUser }: Props) => {
   const { changeStatus, remove } = userPatientStore();
   const navigate = useNavigate();
   const viewPlantilla = () => {
-    navigate("/session/" + item.id);
-  };
-  const viewGallery = () => {
-    navigate("/gallery/" + item.id);
+    navigate("/session/" + item.user.id);
   };
 
   const handleUpdate = () => {
@@ -64,10 +60,7 @@ export const PatientRowActions = ({ item, onEditUser }: Props) => {
             <Pen /> Editar
           </DropdownMenuItem>
           <DropdownMenuItem onClick={viewPlantilla}>
-            <Footprints /> Registro de plantilla
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={viewGallery}>
-            <GalleryThumbnails /> Galería
+            <DatabaseIcon /> Ver sesiones
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

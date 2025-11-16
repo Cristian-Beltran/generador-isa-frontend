@@ -8,6 +8,7 @@ import DoctorsPage from "./modules/Doctors/doctors";
 import { AuthProvider } from "./auth/ProtectedRoute";
 import DevicesPage from "./modules/Device/devices";
 import PatientPage from "./modules/Patient/patient";
+import SessionPage from "./modules/Session/session";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -24,8 +25,8 @@ export const router = createBrowserRouter([
       { path: "doctor", element: <DoctorsPage /> },
       { path: "devices", element: <DevicesPage /> },
       { path: "patients", element: <PatientPage /> },
-
-      // routes
+      { path: "session/:id", element: <SessionPage /> },
+      { path: "me", element: <SessionPage /> },
     ],
   },
   { path: "*", element: <NotFoundPage /> },

@@ -1,24 +1,11 @@
+// session.interface.ts
 import type { Patient } from "@/modules/Patient/patient.interface";
 import type { Device } from "@/modules/Device/device.interface";
 
 export interface SessionData {
   id: string;
-
-  // Presión (5 puntos)
-  p1: number; // talón
-  p2: number; // mediopié 1
-  p3: number; // mediopié 2 / antepié 1
-  p4: number; // antepié 2
-  p5: number; // antepié 3
-
-  // IMU
-  ax: number;
-  ay: number;
-  az: number;
-  gx: number;
-  gy: number;
-  gz: number;
-
+  measuredCurrent_mA: number;
+  temperature_C: number;
   recordedAt: string; // ISO
 }
 
@@ -28,5 +15,20 @@ export interface Session {
   device: Device;
   startedAt: string; // ISO
   endedAt?: string | null;
-  records: SessionData[]; // backend ya devuelve todos los datos
+  durationSeconds: number;
+  targetCurrent_mA: number;
+  records: SessionData[];
+}
+
+/** Payload para crear una sesión */
+export interface CreateSessionInput {
+  deviceSerial: string;
+  durationSeconds: number;
+  targetCurrent_mA: number;
+}
+
+/** Muestra individual que llega por MQTT y se envía al backend */
+export interface SessionDataSampleInput {
+  measuredCurrent_mA: number;
+  temperature_C: number;
 }

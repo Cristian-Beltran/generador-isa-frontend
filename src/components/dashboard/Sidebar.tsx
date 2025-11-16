@@ -7,7 +7,6 @@ import {
   X,
   Moon,
   Sun,
-  Home,
   UsersRound,
   User,
   Cpu,
@@ -22,12 +21,16 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-const navigationItems = [
-  { name: "Panel", href: "/", icon: Home },
+const doctorMenu = [
   { name: "Doctores", href: "/doctor", icon: UsersRound },
   { name: "Pacientes", href: "/patients", icon: User },
-  { name: "Sesiones", href: "/monitoring", icon: WavesIcon },
+  { name: "Sesion", href: "/monitoring", icon: WavesIcon },
   { name: "Dispositivos", href: "/devices", icon: Cpu },
+];
+
+const patientMenu = [
+  { label: "Mis datos", href: "/me", icon: User },
+  { name: "Sesion", href: "/monitoring", icon: WavesIcon },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
@@ -41,6 +44,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     onClose();
     navigate("/login");
   };
+
+  const navigationItems = user?.type === "doctor" ? doctorMenu : patientMenu;
 
   return (
     <>
