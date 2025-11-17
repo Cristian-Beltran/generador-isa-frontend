@@ -30,7 +30,7 @@ type SampleRow = {
   temperature_C: number;
 };
 
-const CURRENT_OPTIONS = [1, 5, 10] as const;
+const CURRENT_OPTIONS = [0.5, 1.5, 2, 2.5] as const;
 const DURATION_OPTIONS = [
   { label: "10 segundos", value: 10 },
   { label: "1 minuto", value: 60 },
@@ -49,7 +49,7 @@ export default function MonitoringPage() {
   );
 
   const [current_mA, setCurrent_mA] =
-    useState<(typeof CURRENT_OPTIONS)[number]>(5);
+    useState<(typeof CURRENT_OPTIONS)[number]>(0.5);
   const [durationSeconds, setDurationSeconds] = useState<number>(60);
 
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
