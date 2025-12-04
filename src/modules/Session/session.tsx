@@ -118,6 +118,81 @@ export default function SessionPage() {
 
   const shortId = (id: string) => id.slice(0, 8);
 
+  const handleDownloadCsv = () => {
+    if (!sessions || sessions.length === 0) return;
+
+    const csvHeader = [
+      "sessionId",
+      "deviceSerial",
+      "durationSeconds",
+      "targetCurrent_mA",
+      "startedAt",
+      "endedAt",
+      "samplesCount",
+      "avgCurrent_mA",
+      "maxCurrent_mA",
+      "avgTemp_C",
+      "maxTemp_C",
+      "lastSampleCurrent_mA",
+      "lastSampleTemp_C",
+      "lastSampleRecordedAt",
+    ];
+
+    const escapeCsv = (value: unknown): string => {
+      if (value === null || value === undefined) return "";
+      const str = String(value);
+      // envuelve en comillas y escapa comillas internas
+      const escaped = str.replace(/"/g, '""');
+      return `"${escaped}"`;
+    };
+
+    const rows = sessions.map((session) => {
+      const { avgCurrent, maxCurrent, avgTemp, maxTemp, lastSample } =
+        computeSessionStats(session);
+
+      const samplesCount = session.records?.length ?? 0;
+
+      return [
+        shortId(session.id),
+        session.device?.serialNumber ?? "",
+        session.durationSeconds ?? "",
+        session.targetCurrent_mA ?? "",
+        session.startedAt ? new Date(session.startedAt).toISOString() : "",
+        session.endedAt ? new Date(session.endedAt).toISOString() : "",
+        samplesCount,
+        avgCurrent !== null ? avgCurrent.toFixed(3) : "",
+        maxCurrent !== null ? maxCurrent.toFixed(3) : "",
+        avgTemp !== null ? avgTemp.toFixed(3) : "",
+        maxTemp !== null ? maxTemp.toFixed(3) : "",
+        lastSample ? lastSample.measuredCurrent_mA.toFixed(3) : "",
+        lastSample ? lastSample.temperature_C.toFixed(3) : "",
+        lastSample && lastSample.recordedAt
+          ? new Date(lastSample.recordedAt).toISOString()
+          : "",
+      ].map(escapeCsv);
+    });
+
+    const csvContent = [csvHeader.map((h) => `"${h}"`).join(",")]
+      .concat(rows.map((r) => r.join(",")))
+      .join("\n");
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    const filenameBase =
+      patient?.user.fullname?.replace(/\s+/g, "_").toLowerCase() || "patient";
+    link.href = url;
+    link.setAttribute("download", `sessions_${filenameBase}.csv`);
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -138,6 +213,13 @@ export default function SessionPage() {
                 disabled={loading || reloading}
               >
                 <RotateCcw className={reloading ? "animate-spin" : ""} />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleDownloadCsv}
+                disabled={loading || sessions.length === 0}
+              >
+                Descargar CSV
               </Button>
             </>
           }

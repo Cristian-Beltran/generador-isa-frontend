@@ -16,6 +16,15 @@ import { patientService } from "@/modules/Patient/data/patient.service";
 import { sessionService } from "@/modules/Session/data/session.service";
 import { getMqttClient, closeMqttClient } from "@/lib/mqtt";
 import type { CreateSessionInput } from "../Session/session.interface";
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 // Tipos auxiliares
 type DeviceOption = {
@@ -580,7 +589,35 @@ export default function MonitoringPage() {
             automáticamente como Session Data.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className="space-y-6">
+          {/* 📊 NUEVA GRÁFICA DE TEMPERATURA */}
+          {samples.length > 0 && (
+            <div className="w-full h-56 border rounded-md p-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={samples.map((s, i) => ({
+                    index: i,
+                    temperature: s.temperature_C,
+                  }))}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="index" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} domain={["auto", "auto"]} />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="temperature"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Tabla original */}
           {samples.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Aún no se han recibido lecturas. Inicia una sesión para comenzar a
